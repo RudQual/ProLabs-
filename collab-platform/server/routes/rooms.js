@@ -6,6 +6,9 @@ const Project = require('../models/Project');
 const Message = require('../models/Message');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const fetch = global.fetch || ((...args) => import('node-fetch').then(({default: f}) => f(...args)));
+const commits = require('../services/commits');
+const { summarizeDiffs } = require('../services/groq');
 
 router.get('/search', auth, async (req, res) => {
     try {
@@ -233,6 +236,103 @@ router.delete('/:id', auth, async (req, res) => {
         res.json({ msg: 'Room and all associated data removed' });
     } catch (err) {
         console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
+// --- Commit Request and Approval Flow ---
+async function generateCommitSummary(diffText) {
+    try {
+        const response = await fetch('https://api.groq.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: "llama-3.1-70b",
+                messages: [
+                    { role: "system", content: "You are an expert AI that summarizes code changes for commit messages." },
+                    { role: "user", content: `Summarize these code changes briefly:\n\n${diffText}` }
+                ]
+            })
+        });
+        const data = await response.json();
+        return data.choices?.[0]?.message?.content || "No summary generated.";
+    } catch (e) {
+        return "No summary generated.";
+    }
+}
+
+// Request a commit (sends to admin for approval) - new structure supports multiple files
+router.post('/:id/commit', auth, async (req, res) => {
+    const { files, projectId } = req.body; // files: [{path, oldContent, newContent}]
+    try {
+        const room = await Room.findById(req.params.id).populate('owner', 'username');
+        if (!room) return res.status(404).json({ msg: 'Room not found' });
+        if (!room.members.some(m => m.toString() === req.user.id)) {
+            return res.status(401).json({ msg: 'Not a room member' });
+        }
+
+        const reqObj = commits.createRequest({ roomId: room.id, authorId: req.user.id, files });
+        const flatDiff = reqObj.diffs.map(d => `${d.path}\n${d.diff.map(p => (p.added ? '+ ' : p.removed ? '- ' : '  ') + p.value).join('')}`).join('\n\n');
+        const summary = await summarizeDiffs(flatDiff.slice(0, 12000));
+        commits.setSummary(reqObj.id, summary);
+        const io = req.app.get('socketio');
+        const userSocketMap = req.app.get('userSocketMap');
+
+        const payload = { requestId: reqObj.id, roomId: room.id, requesterId: req.user.id, projectId, summary, files: files.map(f => ({ path: f.path })) };
+
+        // Notify admin
+        const ownerSocketId = userSocketMap[room.owner._id.toString()];
+        if (ownerSocketId) {
+            io.of('/rooms').to(ownerSocketId).emit('commit:request', payload);
+        }
+
+        // Persist a notification for admin
+        const note = new Notification({ user: room.owner._id, message: `Commit approval requested in "${room.name}".` });
+        await note.save();
+
+        res.json({ ok: true, summary });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+// Admin approves/rejects a commit
+router.post('/:id/approve', auth, async (req, res) => {
+    const { requesterId, approved, requestId, projectId } = req.body;
+    try {
+        const room = await Room.findById(req.params.id);
+        if (!room) return res.status(404).json({ msg: 'Room not found' });
+        if (room.owner.toString() !== req.user.id) {
+            return res.status(401).json({ msg: 'Not authorized' });
+        }
+
+        const io = req.app.get('socketio');
+        const userSocketMap = req.app.get('userSocketMap');
+
+        // For now, we just drop or accept without writing to repo (wiring can be added to File model)
+        const reqObj = commits.get(requestId);
+        if (approved) commits.take(requestId);
+
+        const requesterSocketId = userSocketMap[requesterId];
+        if (requesterSocketId) {
+            io.of('/rooms').to(requesterSocketId).emit(approved ? 'commit:approved' : 'commit:rejected', {
+                roomId: room.id,
+                projectId,
+                requestId
+            });
+        }
+
+        const noteMsg = approved ? `Admin approved your commit in "${room.name}".` : `Admin rejected your commit in "${room.name}".`;
+        const note = new Notification({ user: requesterId, message: noteMsg });
+        await note.save();
+
+        res.json({ ok: true });
+    } catch (err) {
+        console.error(err);
         res.status(500).send('Server Error');
     }
 });

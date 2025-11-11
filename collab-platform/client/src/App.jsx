@@ -1,7 +1,7 @@
 import React, { useContext, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast, Toaster } from 'react-hot-toast';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // General Components
 import Navbar from './components/layout/Navbar';
@@ -21,6 +21,8 @@ import AuthContext from './context/AuthContext';
 import { socket } from './socket';
 
 // We need an inner component to use the navigate hook
+const queryClient = new QueryClient();
+
 const AppContent = () => {
   console.log("2. AppContent component is rendering");
   const { user, isAuthenticated } = useContext(AuthContext);
@@ -28,7 +30,9 @@ const AppContent = () => {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      socket.connect();
+      if (!socket.connected) {
+        socket.connect();
+      }
       socket.emit('register-user', user._id);
 
       const handleNewNotification = ({ message }) => {
@@ -46,9 +50,29 @@ const AppContent = () => {
       };
       socket.on('new-notification', handleNewNotification);
 
+      const handleCommitRequest = (payload) => {
+          toast.info(`Commit requested: ${payload.summary}`, {
+              position: "top-right",
+              autoClose: 8000,
+              theme: "dark",
+              onClick: () => navigate(`/rooms/${payload.roomId}`)
+          });
+      };
+      const handleCommitApproved = () => {
+          toast.success("Admin approved your commit.", { position: "top-right", autoClose: 6000, theme: "dark" });
+      };
+      const handleCommitRejected = () => {
+          toast.error("Admin rejected your commit.", { position: "top-right", autoClose: 6000, theme: "dark" });
+      };
+      socket.on('commit-request', handleCommitRequest);
+      socket.on('commit-approved', handleCommitApproved);
+      socket.on('commit-rejected', handleCommitRejected);
+
       return () => {
           socket.off('new-notification', handleNewNotification);
-          socket.disconnect();
+          socket.off('commit-request', handleCommitRequest);
+          socket.off('commit-approved', handleCommitApproved);
+          socket.off('commit-rejected', handleCommitRejected);
       };
     } else {
         socket.disconnect();
@@ -79,8 +103,10 @@ const AppContent = () => {
 function App() {
   return (
     <Router>
-      <ToastContainer />
-      <AppContent />
+      <QueryClientProvider client={queryClient}>
+        <Toaster position="top-right" toastOptions={{ duration: 6000 }} />
+        <AppContent />
+      </QueryClientProvider>
     </Router>
   );
 }
