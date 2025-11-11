@@ -1,0 +1,460 @@
+/* --- THEME & GLOBAL STYLES --- */
+:root {
+    --font-family: 'Inter', sans-serif;
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-bold: 700;
+
+    --bg-primary: #1e1e1e;      /* Main background, like VS Code */
+    --bg-secondary: #252526;    /* Slightly lighter surfaces */
+    --bg-tertiary: #333333;     /* Hover states, etc. */
+
+    --text-primary: #cccccc;     /* Main text */
+    --text-secondary: #8e8e8e;   /* Muted text */
+    --text-on-accent: #ffffff;   /* Text on buttons */
+
+    --accent-primary: #0e639c;    /* Main blue for buttons */
+    --accent-hover: #1581cc;     /* Button hover */
+    --accent-danger: #c1121f;     /* Delete/Leave buttons */
+    
+    --border-color: #3c3c3c;
+    --border-radius: 6px;
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-family);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    font-weight: var(--font-weight-regular);
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 2rem;
+}
+
+h1, h2, h3 {
+    font-weight: var(--font-weight-bold);
+    margin-top: 0;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 1.5rem 0;
+}
+
+/* --- STANDARD ELEMENTS (Buttons, Forms) --- */
+.btn {
+    display: inline-block;
+    background: var(--accent-primary);
+    color: var(--text-on-accent);
+    padding: 0.8rem 1.5rem;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: var(--font-weight-medium);
+    border-radius: var(--border-radius);
+    transition: background-color 0.2s ease-in-out;
+}
+.btn:hover {
+    background: var(--accent-hover);
+}
+.btn:disabled {
+    background-color: var(--bg-tertiary);
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background-color: var(--bg-tertiary);
+}
+.btn-leave {
+    background-color: var(--accent-danger);
+}
+
+input, textarea, select {
+    display: block;
+    width: 100%;
+    padding: 0.8rem;
+    margin: 0.5rem 0;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border-radius: var(--border-radius);
+    font-family: var(--font-family);
+}
+::placeholder {
+    color: var(--text-secondary);
+}
+
+/* --- NAVBAR --- */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.7rem 2rem;
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+.navbar a {
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+}
+.navbar a:hover {
+    color: var(--accent-hover);
+}
+.navbar ul {
+    display: flex;
+    list-style: none;
+    gap: 1.5rem;
+    margin: 0;
+}
+
+/* --- MODALS (Shared styles) --- */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+.modal-content {
+    background-color: var(--bg-secondary);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    width: 90%;
+    max-width: 500px;
+    border: 1px solid var(--border-color);
+}
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 2rem;
+    gap: 1rem;
+}
+
+/* --- DASHBOARD & ROOMS --- */
+.dashboard-layout, .room-layout {
+    display: grid;
+    grid-template-columns: 1fr 2fr; /* Default 2 columns */
+    gap: 2rem;
+    margin-top: 1.5rem;
+}
+.dashboard-layout {
+    grid-template-columns: 1fr 2fr 1fr; /* 3 columns for dashboard */
+}
+.notifications-panel, .main-panel, .join-panel, .sidebar {
+    background-color: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+}
+.room-list-item, .notification-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--bg-primary);
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 0.5rem;
+}
+.room-actions { display: flex; gap: 0.5rem; }
+.btn-action {
+    padding: 0.3rem 0.8rem; border: none; border-radius: var(--border-radius);
+    cursor: pointer; color: white; font-size: 0.8rem;
+}
+.btn-edit { background-color: var(--accent-primary); }
+.btn-delete { background-color: var(--accent-danger); }
+.btn-join { background-color: #2a9d8f; }
+
+/* --- VIDEO CALL --- */
+.video-call-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 450px;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+.drag-handle {
+    padding: 8px;
+    background-color: var(--bg-secondary);
+    cursor: move;
+    text-align: center;
+    border-top-left-radius: var(--border-radius);
+    border-top-right-radius: var(--border-radius);
+    font-weight: var(--font-weight-medium);
+}
+.video-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 5px;
+}
+.video-controls {
+    padding: 10px;
+    text-align: center;
+    background-color: var(--bg-secondary);
+    border-bottom-left-radius: var(--border-radius);
+    border-bottom-right-radius: var(--border-radius);
+}
+
+/* --- ASSESSMENT MODAL --- */
+.chat-window {
+    height: 50vh;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+.chat-message {
+    padding: 0.8rem;
+    border-radius: var(--border-radius);
+    max-width: 80%;
+}
+.chat-message.bot {
+    background-color: var(--bg-tertiary);
+    align-self: flex-start;
+}
+.chat-message.user {
+    background-color: var(--accent-primary);
+    color: var(--text-on-accent);
+    align-self: flex-end;
+}
+.options-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+.option-btn {
+    width: 100%;
+    padding: 1rem;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.2s ease-in-out;
+}
+.option-btn:hover {
+    background-color: var(--accent-primary);
+}
+.written-answer-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.written-answer-form button {
+    align-self: flex-end;
+}
+/* Add these new styles at the bottom of the file */
+
+.status-label {
+    font-size: 0.8rem;
+    font-weight: var(--font-weight-bold);
+    padding: 0.3rem 0.8rem;
+    border-radius: var(--border-radius);
+    text-align: center;
+}
+.status-label.owner {
+    background-color: var(--accent-primary);
+    color: var(--text-on-accent);
+}
+.status-label.member {
+    background-color: var(--bg-tertiary);
+    color: var(--text-secondary);
+}
+/* --- IN-ROOM CHAT STYLES --- */
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 60vh; /* You can adjust this height */
+    margin-top: 2rem;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.messages-area {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.message {
+    margin-bottom: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    max-width: 70%;
+    word-wrap: break-word;
+}
+
+.message-sender {
+    font-size: 0.8rem;
+    font-weight: var(--font-weight-bold);
+    margin-bottom: 0.3rem;
+    color: var(--text-secondary);
+}
+
+.message.sent {
+    background-color: var(--accent-primary);
+    color: var(--text-on-accent);
+    align-self: flex-end;
+    border-bottom-right-radius: 2px;
+}
+.message.sent .message-sender {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.message.received {
+    background-color: var(--bg-secondary);
+    align-self: flex-start;
+    border-bottom-left-radius: 2px;
+}
+
+.message-input-form {
+    display: flex;
+    padding: 0.5rem;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--bg-secondary);
+}
+
+.message-input-form input {
+    flex-grow: 1;
+    border: none;
+    border-radius: 20px;
+    padding: 0.8rem 1.2rem;
+    margin-right: 0.5rem;
+    background-color: var(--bg-tertiary);
+}
+
+.message-input-form button {
+    background-color: var(--accent-primary);
+    border: none;
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+.message-input-form button:hover {
+    background-color: var(--accent-hover);
+}
+
+.notifications-list, .rooms-list {
+    max-height: 60vh; /* Sets a maximum height (60% of the screen height) */
+    overflow-y: auto; /* Adds a vertical scrollbar ONLY if the content overflows */
+    padding-right: 0.5rem; /* Adds some space so text doesn't touch the scrollbar */
+}
+/* Add these new styles at the bottom of index.css */
+
+.project-list, .member-list, .requests-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 40vh; /* Adjust this value as needed */
+    overflow-y: auto;
+    padding-right: 0.5rem; /* Space for the scrollbar */
+}
+
+.member-list {
+    max-height: 60vh; /* Members list can be taller */
+}
+/* --- IDE LAYOUT & FILE TREE --- */
+.ide-layout {
+    display: grid;
+    grid-template-columns: 250px 1fr; /* Sidebar and main area */
+    gap: 1rem;
+    height: 90vh;
+}
+
+.file-tree-panel {
+    background-color: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.file-tree-panel h3 {
+    margin-top: 0;
+}
+
+.file-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.file-item {
+    padding: 0.5rem;
+    cursor: pointer;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.file-item:hover {
+    background-color: var(--bg-tertiary);
+}
+.file-item span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.main-ide-area {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.ide-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.editor-container {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    flex-grow: 1; /* Make the editor take up available space */
+}
+
+.console-panel {
+    background: #181818;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    height: 25vh;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+}
+.console-panel h3 {
+    margin-top: 0;
+}
+.console-panel pre {
+    color: #ccc;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+    font-family: monospace;
+}
