@@ -5,6 +5,7 @@ const Project = require('../models/Project');
 const Room = require('../models/Room');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const { createProjectFiles } = require('../utils/templateManager');
 
 // Middleware to check if the user is the owner of the room associated with the project
 const isRoomOwner = async (req, res, next) => {
@@ -38,7 +39,7 @@ router.post('/', auth, async (req, res) => {
         
         const newProject = new Project({ name, description, projectType, room: roomId, members: [req.user.id] });
         const project = await newProject.save();
-        
+        await createProjectFiles(projectType, project._id);
         room.projects.push(project.id);
         await room.save();
         await room.populate('members'); // Make sure members are populated

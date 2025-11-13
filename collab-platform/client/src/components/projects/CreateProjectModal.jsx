@@ -18,6 +18,7 @@ const CreateProjectModal = ({ roomId, onClose, onProjectCreated }) => {
             onClose();
         } catch (err) {
             console.error(err.response.data);
+            console.error("Failed to create project:", err);
             alert('Failed to create project. Only the room owner can create projects.');
         }
     };
