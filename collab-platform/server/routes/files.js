@@ -34,19 +34,47 @@ router.get('/:fileId', auth, async (req, res) => {
 // @desc     Create a new file or folder
 router.post('/', auth, async (req, res) => {
     const { name, path, projectId, isFolder } = req.body;
+    
+    // Validate required fields
+    if (!name || !name.trim()) {
+        return res.status(400).json({ msg: 'File or folder name is required.' });
+    }
+    if (!projectId) {
+        return res.status(400).json({ msg: 'Project ID is required.' });
+    }
+    
     try {
+        // Normalize path: remove leading/trailing slashes, collapse multiple slashes
+        const cleanName = name.trim();
+        const normalizedPath = path ? path.replace(/^\/+|\/+$/g, '').replace(/\/+/g, '/') : '';
+        const finalPath = normalizedPath ? `${normalizedPath}/${cleanName}` : cleanName;
+
+        // Check if file/folder with this path already exists
+        const existing = await File.findOne({ project: projectId, path: finalPath });
+        if (existing) {
+            return res.status(400).json({ msg: `A file or folder with the name "${cleanName}" already exists at this location.` });
+        }
+
         const newFile = new File({
-            name,
-            path,
+            name: cleanName,
+            path: finalPath,
             project: projectId,
-            isFolder,
-            content: isFolder ? '' : '// Your code here...'
+            isFolder: isFolder === true || isFolder === 'true',
+            content: (isFolder === true || isFolder === 'true') ? '' : '// Your code here...'
         });
         const file = await newFile.save();
         res.json(file);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        // Handle duplicate key error from MongoDB unique index
+        if (err.code === 11000) {
+            return res.status(400).json({ msg: `A file or folder with the name "${name}" already exists at this location.` });
+        }
+        // Handle validation errors
+        if (err.name === 'ValidationError') {
+            return res.status(400).json({ msg: 'Validation error', error: err.message });
+        }
+        console.error('File creation error:', err);
+        res.status(500).json({ msg: 'Server Error', error: err.message || 'Unknown error occurred' });
     }
 });
 

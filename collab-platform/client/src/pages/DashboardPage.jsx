@@ -53,6 +53,8 @@ const DashboardPage = () => {
 
         const handleNewNotification = () => {
             fetchNotifications();
+            // Refresh rooms list when notification arrives (user might have been accepted)
+            fetchRooms();
         };
 
         socket.on('dashboard-update', handleDashboardUpdate);
@@ -212,9 +214,13 @@ const DashboardPage = () => {
                                     <span>{room.name} (Owner: {room.owner.username})</span>
                                     
                                     {isOwner ? (
-                                        <span className="status-label owner">You are the owner</span>
+                                        <Link to={`/rooms/${room._id}`} className="btn-action btn-join" style={{backgroundColor: '#0e639c', textDecoration: 'none', display: 'inline-block'}}>
+                                            Open Room
+                                        </Link>
                                     ) : isMember ? (
-                                        <span className="status-label member">Already a member</span>
+                                        <Link to={`/rooms/${room._id}`} className="btn-action btn-join" style={{backgroundColor: '#2a9d8f', textDecoration: 'none', display: 'inline-block'}}>
+                                            Join Room
+                                        </Link>
                                     ) : (
                                         <button 
                                             className="btn-action btn-join" 
